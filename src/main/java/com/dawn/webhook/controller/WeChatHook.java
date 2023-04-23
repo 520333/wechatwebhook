@@ -100,7 +100,7 @@ public class WeChatHook {
                     endsAt = job.get("endsAt").toString();
                 }
             }
-            String reg = "T\\d|\\.\\d+\\D";
+            String reg = "T|\\.\\d+\\D";
             instance.setStartDateTime(timeRegx(reg," ",startsAt));
             instance.setResolvedDateTime(timeRegx(reg," ",endsAt));
 
