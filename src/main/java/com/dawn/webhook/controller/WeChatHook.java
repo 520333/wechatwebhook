@@ -9,14 +9,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import javax.websocket.server.PathParam;
 import java.io.IOException;
 import java.text.ParseException;
@@ -32,7 +30,7 @@ import java.util.regex.Pattern;
  */
 @RestController
 public class WeChatHook {
-    private final Instance instance = new Instance();
+    private final Instance instance =new Instance();
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     @Value("${url}")
     private String botUrl;// 机器人webhook
@@ -70,7 +68,7 @@ public class WeChatHook {
         }
         matcher.appendTail(sb);
         String s = timeAdd(sb.toString());//UTC+8
-        //log.info("正则替换后的时间：" + sb + " UTC+8北京时间：" + s);
+        log.info("正则替换后的时间：" + sb + " UTC+8北京时间：" + s);
         return timeAdd(sb.toString());
     }
 
@@ -80,13 +78,11 @@ public class WeChatHook {
      */
     @RequestMapping(value = "/webhook", consumes = MediaType.APPLICATION_JSON_VALUE)
     public String WeChatHook(@RequestBody JsonNode json) {
-        // ObjectMapper mapper = new ObjectMapper();
         String status = null;
         String labels = null;
         String annotations = null;
         String sentMarkdownMsg = null;
         try {
-            // String alertString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
             JSONObject jsonObject = JSON.parseObject(String.valueOf(json));
             // 整理alerts列表
             JSONArray alerts = jsonObject.getJSONArray("alerts");
@@ -100,7 +96,7 @@ public class WeChatHook {
                     endsAt = job.get("endsAt").toString();
                 }
             }
-            String reg = "T\\d|\\.\\d+\\D";
+            String reg = "T|\\.\\d+\\D";
             instance.setStartDateTime(timeRegx(reg," ",startsAt));
             instance.setResolvedDateTime(timeRegx(reg," ",endsAt));
 
@@ -109,6 +105,8 @@ public class WeChatHook {
             instance.setStatus(status);
             instance.setSeverity(label.getString("severity"));
             instance.setInstance(label.getString("instance"));
+            instance.setPort(label.getString("port"));
+            if (instance.getPort()==null) instance.setPort("缺省");
             instance.setAlertName(label.getString("alertname"));
             instance.setName(label.getString("name"));
             instance.setInstanceRegion(label.getString("instance_region"));
@@ -116,12 +114,12 @@ public class WeChatHook {
             instance.setGroupRegion(label.getString("group_region"));
             instance.setSummary(annotation.getString("summary"));
             instance.setDescription(annotation.getString("description"));
-
             log.info("消息类型: " + instance.getAlertName());
             log.info("告警级别: " + instance.getSeverity());
             log.info("协议类型: " + instance.getJob());
             log.info("主机节点: " + instance.getInstanceRegion());
-            log.info("实例IP: " + instance.getInstance());
+            log.info("IP(域名): " + instance.getInstance());
+            log.info("端口: " + instance.getPort());
             log.info("集团: " + instance.getSummary());
             log.info("告警详情: " + instance.getDescription());
             log.info("告警时间: " + instance.getStartDateTime());
@@ -130,30 +128,32 @@ public class WeChatHook {
             String msgType ; // 消息类型
             String color; // font 颜色
             String resoled; // 恢复时间
-            String resoledFormat = "<font color=\"comment\">恢复时间:</font><font color=\"info\">%s</font>\n";
+            String severity = String.format("><font color=\"comment\">告警级别:</font>%s\n",instance.getSeverity());
+
             if(instance.getStatus().equals("firing")){
                 msgType = "暂停消息";
                 color = "warning";
                 resoled = "";
-            }else{
+            }else {
                 msgType = "恢复消息";
+                severity= "";
                 color = "info";
-                resoled = String.format(resoledFormat, instance.getResolvedDateTime());
+                resoled = String.format("<font color=\"comment\">恢复时间:</font><font color=\"info\">%s</font>\n", instance.getResolvedDateTime());
             }
             String markdown = String.format(
                             "# <font color=\"%s\">                    %s</font>\n" +
                             "><font color=\"comment\">消息类型:</font>%s \n" +
-                            "><font color=\"comment\">告警级别:</font>%s\n" +
-                            "><font color=\"comment\">探测协议:</font>`%s`\n" +
+                            severity +
+                            "><font color=\"comment\">协议:</font>%s  <font color=\"comment\">端口:</font>%s\n" +
                             "><font color=\"comment\">主机节点:</font>%s\n" +
-                            "><font color=\"comment\">集团:</font>%s\n" +
-                            "><font color=\"comment\">实例IP:</font>%s\n" +
+                            "><font color=\"comment\">IP(域名):</font>**%s**\n" +
+                            "><font color=\"comment\">用户:</font>%s\n" +
                             "><font color=\"comment\">告警详情:</font>\n" +
                             "# %s\n" +
                             "\n<font color=\"comment\">告警时间:</font><font color=\"warning\">%s</font>\n" +
                             resoled,
-                    color,msgType ,instance.getAlertName(), instance.getSeverity(), instance.getJob(), instance.getInstanceRegion(),
-                    instance.getSummary(), instance.getInstance(), instance.getDescription(),instance.getStartDateTime(),instance.getResolvedDateTime()
+                    color,msgType ,instance.getAlertName(), instance.getJob(),instance.getPort(), instance.getInstanceRegion(),
+                    instance.getInstance(), instance.getSummary(), instance.getDescription(),instance.getStartDateTime(),instance.getResolvedDateTime()
             );
             WeChatHook handleAlert = new WeChatHook(botUrl);
             sentMarkdownMsg = handleAlert.sentMarkdownMsg(markdown);
@@ -161,9 +161,7 @@ public class WeChatHook {
             e.printStackTrace();
         }
         return sentMarkdownMsg;
-
     }
-
 
     /**
      * @param msg markdown风格消息
@@ -186,18 +184,20 @@ public class WeChatHook {
      */
     public String callWeChatBot(String reqBody) throws Exception {
         log.info("请求参数：" + reqBody);
-
         // 构造RequestBody对象，用来携带要提交的数据；需要指定MediaType，用于描述请求/响应 body 的内容类型
         okhttp3.MediaType contentType = okhttp3.MediaType.parse("application/json; charset=utf-8");
         okhttp3.RequestBody body = okhttp3.RequestBody.create(contentType, reqBody);
         // 调用群机器人
         String respMsg = okHttp(body, botUrl);
-        if ("0".equals(respMsg.substring(11, 12))) {
+        JSONObject jsonObject = JSON.parseObject(String.valueOf(respMsg));
+        String errorCode = jsonObject.getString("errcode");
+        if ("0".equals(errorCode)) {
             log.info("向群发送消息成功！");
         } else {
-            log.info("请求失败！");
             // 发送错误信息到群
-            sentMarkdownMsg("群机器人推送消息失败，错误信息：\n" + respMsg);
+            log.error("发送失败,错误代码：" + errorCode);
+            // sentMarkdownMsg("群机器人推送消息失败，错误信息：\n" + respMsg);
+
         }
         return respMsg;
     }
@@ -235,6 +235,3 @@ public class WeChatHook {
         return respMsg;
     }
 }
-
-
-

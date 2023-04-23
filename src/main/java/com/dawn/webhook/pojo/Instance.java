@@ -3,17 +3,17 @@ package com.dawn.webhook.pojo;
 public class Instance {
     private String status; //告警状态
     private String alertName; //告警名称
-    private String groupRegion; // 集团归宿
-    private String instance; // 实例IP
-    private String instanceRegion; //实例节点
+    private String groupRegion; // 集团归属
+    private String instance; // 主机IP(域名)
+    private String port; // 主机端口号
+    private String instanceRegion; //主机节点
     private String job; //检测类型
     private String name; // 集团名称
-    private String severity; // 告警登记
+    private String severity; // 告警等级
     private String description; //详细描述
     private String summary; //概括
     private String startDateTime; //开始日期
     private String resolvedDateTime; //恢复日期
-
 
     public String getStatus() {
         return status;
@@ -45,6 +45,14 @@ public class Instance {
 
     public void setInstance(String instance) {
         this.instance = instance;
+    }
+
+    public String getPort() {
+        return port;
+    }
+
+    public void setPort(String port) {
+        this.port = port;
     }
 
     public String getInstanceRegion() {
