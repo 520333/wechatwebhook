@@ -11,11 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import javax.websocket.server.PathParam;
+
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,7 +29,7 @@ import java.util.regex.Pattern;
  */
 @RestController
 public class WeChatHook {
-    private final Instance instance =new Instance();
+    private final Instance instance = new Instance();
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     @Value("${url}")
     private String botUrl;// 机器人webhook
@@ -54,7 +53,7 @@ public class WeChatHook {
     }
 
     /**
-     * @param pattern 正则表达式匹配 (T0 | .000Z)
+     * @param pattern 正则表达式匹配 (T | .000Z)
      * @param replaceText 要替换的文本
      * @param strDateTime 字符串时间 2023-04-21T017:30:00.000Z
      * @return 正则替换后的时间
@@ -96,12 +95,11 @@ public class WeChatHook {
                     endsAt = job.get("endsAt").toString();
                 }
             }
+            JSONObject label = JSON.parseObject(labels);
+            JSONObject annotation = JSON.parseObject(annotations);
             String reg = "T|\\.\\d+\\D";
             instance.setStartDateTime(timeRegx(reg," ",startsAt));
             instance.setResolvedDateTime(timeRegx(reg," ",endsAt));
-
-            JSONObject label = JSON.parseObject(labels);
-            JSONObject annotation = JSON.parseObject(annotations);
             instance.setStatus(status);
             instance.setSeverity(label.getString("severity"));
             instance.setInstance(label.getString("instance"));
@@ -114,22 +112,21 @@ public class WeChatHook {
             instance.setGroupRegion(label.getString("group_region"));
             instance.setSummary(annotation.getString("summary"));
             instance.setDescription(annotation.getString("description"));
-            log.info("消息类型: " + instance.getAlertName());
-            log.info("告警级别: " + instance.getSeverity());
-            log.info("协议类型: " + instance.getJob());
-            log.info("主机节点: " + instance.getInstanceRegion());
-            log.info("IP(域名): " + instance.getInstance());
-            log.info("端口: " + instance.getPort());
-            log.info("集团: " + instance.getSummary());
-            log.info("告警详情: " + instance.getDescription());
-            log.info("告警时间: " + instance.getStartDateTime());
-            log.info("恢复时间: " + instance.getResolvedDateTime());
+            log.info("消息类型：" + instance.getAlertName());
+            log.info("告警级别：" + instance.getSeverity());
+            log.info("协议类型：" + instance.getJob());
+            log.info("主机节点：" + instance.getInstanceRegion());
+            log.info("IP(域名)：" + instance.getInstance());
+            log.info("端口：" + instance.getPort());
+            log.info("集团：" + instance.getSummary());
+            log.info("告警详情：" + instance.getDescription());
+            log.info("告警时间：" + instance.getStartDateTime());
+            log.info("恢复时间：" + instance.getResolvedDateTime());
 
             String msgType ; // 消息类型
             String color; // font 颜色
             String resoled; // 恢复时间
             String severity = String.format("><font color=\"comment\">告警级别:</font>%s\n",instance.getSeverity());
-
             if(instance.getStatus().equals("firing")){
                 msgType = "暂停消息";
                 color = "warning";
@@ -189,15 +186,11 @@ public class WeChatHook {
         okhttp3.RequestBody body = okhttp3.RequestBody.create(contentType, reqBody);
         // 调用群机器人
         String respMsg = okHttp(body, botUrl);
-        JSONObject jsonObject = JSON.parseObject(String.valueOf(respMsg));
-        String errorCode = jsonObject.getString("errcode");
-        if ("0".equals(errorCode)) {
+        if ("0".equals(respMsg.substring(11, 12))) {
             log.info("向群发送消息成功！");
         } else {
             // 发送错误信息到群
-            log.error("发送失败,错误代码：" + errorCode);
-            // sentMarkdownMsg("群机器人推送消息失败，错误信息：\n" + respMsg);
-
+            sentMarkdownMsg("群机器人推送消息失败，错误信息：\n" + respMsg);
         }
         return respMsg;
     }

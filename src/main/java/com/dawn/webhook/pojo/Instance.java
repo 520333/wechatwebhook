@@ -15,6 +15,11 @@ public class Instance {
     private String startDateTime; //开始日期
     private String resolvedDateTime; //恢复日期
 
+
+
+
+
+
     public String getStatus() {
         return status;
     }
@@ -117,5 +122,24 @@ public class Instance {
 
     public void setResolvedDateTime(String resolvedDateTime) {
         this.resolvedDateTime = resolvedDateTime;
+    }
+
+    @Override
+    public String toString() {
+        return "Instance{" +
+                "status='" + status + '\'' +
+                ", alertName='" + alertName + '\'' +
+                ", groupRegion='" + groupRegion + '\'' +
+                ", instance='" + instance + '\'' +
+                ", port='" + port + '\'' +
+                ", instanceRegion='" + instanceRegion + '\'' +
+                ", job='" + job + '\'' +
+                ", name='" + name + '\'' +
+                ", severity='" + severity + '\'' +
+                ", description='" + description + '\'' +
+                ", summary='" + summary + '\'' +
+                ", startDateTime='" + startDateTime + '\'' +
+                ", resolvedDateTime='" + resolvedDateTime + '\'' +
+                '}';
     }
 }
