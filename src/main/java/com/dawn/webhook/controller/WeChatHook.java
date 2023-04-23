@@ -32,7 +32,7 @@ public class WeChatHook {
     private final Instance instance = new Instance();
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     @Value("${url}")
-    private String botUrl;// 机器人webhook
+    private String botUrl;// 机器人url地址
     private String startsAt; // 暂停时间
     private String endsAt; // 恢复时间
 
