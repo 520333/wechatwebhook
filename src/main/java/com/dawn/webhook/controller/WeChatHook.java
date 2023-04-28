@@ -76,7 +76,7 @@ public class WeChatHook {
      * @return null
      */
     @RequestMapping(value = "/webhook", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public String WeChatHook(@RequestBody JsonNode json) {
+    public String handleWeChatHook(@RequestBody JsonNode json) {
         String status = null;
         String labels = null;
         String annotations = null;
@@ -104,7 +104,7 @@ public class WeChatHook {
             instance.setSeverity(label.getString("severity"));
             instance.setInstance(label.getString("instance"));
             instance.setPort(label.getString("port"));
-            if (instance.getPort()==null) instance.setPort("缺省");
+            // if (instance.getPort()==null) instance.setPort("缺省");
             instance.setAlertName(label.getString("alertname"));
             instance.setName(label.getString("name"));
             instance.setInstanceRegion(label.getString("instance_region"));
@@ -128,7 +128,7 @@ public class WeChatHook {
             String resoled; // 恢复时间
             String severity = String.format("><font color=\"comment\">告警级别:</font>%s\n",instance.getSeverity());
             if(instance.getStatus().equals("firing")){
-                msgType = "暂停消息";
+                msgType = "异常消息";
                 color = "warning";
                 resoled = "";
             }else {
@@ -146,7 +146,7 @@ public class WeChatHook {
                             "><font color=\"comment\">IP(域名):</font>**%s**\n" +
                             "><font color=\"comment\">用户:</font>%s\n" +
                             "><font color=\"comment\">告警详情:</font>\n" +
-                            "# %s\n" +
+                            "# `%s`\n" +
                             "\n<font color=\"comment\">告警时间:</font><font color=\"warning\">%s</font>\n" +
                             resoled,
                     color,msgType ,instance.getAlertName(), instance.getJob(),instance.getPort(), instance.getInstanceRegion(),
@@ -222,6 +222,8 @@ public class WeChatHook {
             e.printStackTrace();
         }
         // 请求结果处理
+        assert response != null;
+        assert response.body() != null;
         byte[] datas = response.body().bytes();
         String respMsg = new String(datas);
         log.info("返回结果：" + respMsg);
