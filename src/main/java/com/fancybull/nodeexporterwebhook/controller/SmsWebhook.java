@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class SmsWebhook {
     public static String send(String content,String tel){
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("uid",111052);
-        jsonObject.put("password", SecureUtil.md5("TaN7gD@V"));
+        jsonObject.put("uid",1110521122);
+        jsonObject.put("password", SecureUtil.md5("TaN7gD@1122V"));
         jsonObject.put("mobile",tel);
         jsonObject.put("msg","【五色神牛】"+content);
         System.out.println(jsonObject.toString());
