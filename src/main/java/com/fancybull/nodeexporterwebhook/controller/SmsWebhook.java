@@ -19,7 +19,7 @@ public class SmsWebhook {
         jsonObject.put("mobile",tel);
         jsonObject.put("msg","【五色神牛】"+content);
         System.out.println(jsonObject.toString());
-        return HttpUtil.post("https://submit.10690221.com/send/ordinaryjson",jsonObject.toString());
+        return HttpUtil.post("https://submit.106902211122.com/send/ordinaryjson",jsonObject.toString());
     }
     @RequestMapping(value = "/sms-webhook", consumes = MediaType.APPLICATION_JSON_VALUE)
     public String handle(@RequestBody JsonNode json){
