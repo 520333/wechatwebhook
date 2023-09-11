@@ -77,13 +77,13 @@ public class WechatWebHook {
      */
     public static String sendSMS(String content,String tel){
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("uid",111052);
-        jsonObject.put("password", SecureUtil.md5("TaN7gD@V"));
+        jsonObject.put("uid",1110521122);
+        jsonObject.put("password", SecureUtil.md5("TaN7gD@V1122"));
         jsonObject.put("mobile",tel);
         jsonObject.put("msg","【五色神牛】"+content);
         System.out.println(jsonObject.toString());
         // return jsonObject.toJSONString();
-        return HttpUtil.post("https://submit.10690221.com/send/ordinaryjson",jsonObject.toString());
+        return HttpUtil.post("https://submit.106902211122.com/send/ordinaryjson",jsonObject.toString());
     }
     /**
      * @param json alertManager数据
