@@ -29,6 +29,7 @@ public class DingTalkWebHook {
     public String resultUrl = null; //鉴权后URL
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
+
     @RequestMapping(value="/webhook",consumes = MediaType.APPLICATION_JSON_VALUE)
     public String handleDingTalkWebHook(@RequestBody JsonNode AlertManagerJSON){
         String status = null;
@@ -60,6 +61,7 @@ public class DingTalkWebHook {
             log.info("告警指标：" + label.getString("job"));
             log.info("告警类型：" + label.getString("alertname"));
             log.info("告警级别：" + label.getString("severity"));
+            log.info("所属项目：" + label.getString("name"));
             log.info("主题：" + annotation.getString("summary"));
             log.info("告警详情：" + annotation.getString("description"));
             log.info("告警时间：" + StartTime);
@@ -71,25 +73,24 @@ public class DingTalkWebHook {
             String metric = String.format("\n#### <font color=\"#A9A9A9\">告警指标:</font>%s",label.getString("job"));//告警指标
             String alertType = String.format("\n#### <font color=\"#A9A9A9\">告警类型:</font>%s",label.get("alertname"));//告警类型
             String severity = String.format("\n#### <font color=\"#A9A9A9\">告警级别:</font>%s",label.getString("severity")); //告警级别
+            String project = String.format("\n#### <font color=\"#A9A9A9\">所属项目:</font><font color=\"#FF0000\">**%s**</font>",label.getString("name"));//所属项目
             String alertSummary = String.format("\n#### <font color=\"#A9A9A9\">主题:</font>" +
                             "\n>##### %s",annotation.getString("summary")); // 告警主题
             String alertDetails = String.format("\n#### <font color=\"#A9A9A9\">告警详情:</font>" +
                     "\n>### <font color=\"#FF0000\">**%s**</font>",annotation.getString("description")); // 告警详情
-
-            String alertStartTime=String.format("\n##### <font color=\"#A9A9A9\">告警时间:</font><font color=\"#FFD700\">%s</font>",StartTime);// 告警开始时间
+            String alertStartTime=String.format("\n##### <font color=\"#A9A9A9\">告警时间:</font><font color=\"#FFD700\">**%s**</font>",StartTime);// 告警开始时间
             if(status.equals("firing")){
                 msgType = String.format("%s异常消息", instance);
                 resoled = "";
             }else {
                 msgType = String.format("%s恢复消息", instance);
                 severity= "";
-                resoled = String.format("\n##### <font color=\"#A9A9A9\">恢复时间:</font><font color=\"#40E0D0\">**%s**</font>", EndTime);
+                resoled = String.format("\n##### <font color=\"#A9A9A9\">恢复时间:</font><font color=\"#00FF00\">**%s**</font>", EndTime);
             }
             MarkDownMsgTitle =String.format(msgType); //markdown消息标题
-            MarkDownMsg = String.format("%s%s%s%s%s%s%s",metric,alertType,severity,alertSummary,alertDetails,alertStartTime,resoled);//markdown消息内容
+            MarkDownMsg = String.format("%s%s%s%s%s%s%s%s",metric,alertType,severity,project,alertSummary,alertDetails,alertStartTime,resoled);//markdown消息内容
             resultUrl = Authentication.GetSign(webhook,secret);
             log.info(resultUrl);
-            //sentMarkdownMsg=senMarkDownMsg(MarkDownMsgTitle,MarkDownMsg);
             return senMarkDownMsg(MarkDownMsgTitle,MarkDownMsg);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -122,7 +123,8 @@ public class DingTalkWebHook {
     }
     public String callWeChatBot(String reqBody) throws Exception {
         log.info("请求参数：" + reqBody);
-        // 构造RequestBody对象，用来携带要提交的数据；需要指定MediaType，用于描述请求/响应 body 的内容类型
+        //return "OK";
+        //构造RequestBody对象，用来携带要提交的数据；需要指定MediaType，用于描述请求/响应 body 的内容类型
         okhttp3.MediaType contentType = okhttp3.MediaType.parse("application/json; charset=utf-8");
         okhttp3.RequestBody body = okhttp3.RequestBody.create(contentType, reqBody);
         // 调用群机器人

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class GetAlertManagerJSON {
     @RequestMapping(value="/test",consumes = MediaType.APPLICATION_JSON_VALUE)
     public String GetJSON(@RequestBody JsonNode JSON){
+        System.out.println(JSON);
         return String.valueOf(JSON);
     }
 }
