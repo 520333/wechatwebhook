@@ -18,8 +18,7 @@ public class Authentication {
      */
     public static String GetSign(String webhook,String secretStr) throws Exception {
         Long timestamp = System.currentTimeMillis();
-        //定义密钥
-        //String secret = "xxxxx";
+        //定义密钥 String secret = "xxxxx";
         //把时间戳和密钥拼接成字符串，中间加入一个换行符
         String stringToSign = timestamp + "\n" + secretStr;
         //声明一个Mac对象，用来操作字符串

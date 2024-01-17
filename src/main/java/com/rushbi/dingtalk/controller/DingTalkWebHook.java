@@ -24,6 +24,8 @@ public class DingTalkWebHook {
     private String webhook;
     @Value("${secret}") //钉钉机器人密钥
     private String secret;
+    @Value("${atall}")
+    private String atAll;
     public String MarkDownMsg = null;
     public String MarkDownMsgTitle = null;
     public String resultUrl = null; //鉴权后URL
@@ -73,7 +75,7 @@ public class DingTalkWebHook {
             String metric = String.format("\n#### <font color=\"#A9A9A9\">告警指标:</font>%s",label.getString("job"));//告警指标
             String alertType = String.format("\n#### <font color=\"#A9A9A9\">告警类型:</font>%s",label.get("alertname"));//告警类型
             String severity = String.format("\n#### <font color=\"#A9A9A9\">告警级别:</font>%s",label.getString("severity")); //告警级别
-            String project = String.format("\n#### <font color=\"#A9A9A9\">所属项目:</font><font color=\"#FF0000\">**%s**</font>",label.getString("name"));//所属项目
+            String project = String.format("\n#### <font color=\"#A9A9A9\">所属项目:</font>%s",label.getString("name"));//所属项目
             String alertSummary = String.format("\n#### <font color=\"#A9A9A9\">主题:</font>" +
                             "\n>##### %s",annotation.getString("summary")); // 告警主题
             String alertDetails = String.format("\n#### <font color=\"#A9A9A9\">告警详情:</font>" +
@@ -85,7 +87,7 @@ public class DingTalkWebHook {
             }else {
                 msgType = String.format("%s恢复消息", instance);
                 severity= "";
-                resoled = String.format("\n##### <font color=\"#A9A9A9\">恢复时间:</font><font color=\"#00FF00\">**%s**</font>", EndTime);
+                resoled = String.format("\n##### <font color=\"#A9A9A9\">恢复时间:</font><font color=\"#00CD00\">**%s**</font>", EndTime);
             }
             MarkDownMsgTitle =String.format(msgType); //markdown消息标题
             MarkDownMsg = String.format("%s%s%s%s%s%s%s%s",metric,alertType,severity,project,alertSummary,alertDetails,alertStartTime,resoled);//markdown消息内容
@@ -115,9 +117,9 @@ public class DingTalkWebHook {
         reBody.put("markdown",markdown);
         JSONObject at = new JSONObject();
         JSONArray Atr = new JSONArray();
-        Atr.add("150xx");
+        Atr.add("18120660280");
         at.put("atMobiles",Atr);
-        at.put("isAtAll",true); //@所有人
+        at.put("isAtAll",atAll); //@所有人 false true
         reBody.put("at",at);
         return callWeChatBot(reBody.toString());
     }
@@ -166,6 +168,4 @@ public class DingTalkWebHook {
         log.info("返回结果：" + respMsg);
         return respMsg;
     }
-
-
 }
